@@ -4,12 +4,14 @@ project(tape_and_sort)
 set(CMAKE_CXX_STANDARD 20) # using concepts
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-file(GLOB_RECURSE sources "*.cpp")
+file(GLOB_RECURSE sources
+        src/main.cpp
+        src/sort/sort_tape.cpp
+)
 
 add_executable(tape_and_sort
         ${sources}
 )
-
 
 include(FetchContent)
 FetchContent_Declare(
@@ -22,17 +24,18 @@ FetchContent_MakeAvailable(googletest)
 
 enable_testing()
 
-file(GLOB tests "test/*.cpp")
+file(GLOB tests test/test.cpp ${sources})
 
 add_executable(
-        tape_sort
-        ${tests}
+        tape_test
+        test/test.cpp
         src/sort/sort_tape.cpp
 )
+
 target_link_libraries(
-        tape_sort
+        tape_test
         GTest::gtest_main
 )
 
 include(GoogleTest)
-gtest_discover_tests(tape_sort)
+gtest_discover_tests(tape_test)

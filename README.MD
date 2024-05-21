@@ -1,5 +1,28 @@
 # Tape and sort
 
+In this task, I had two goals:
+* implement interface `Tape`
+* learn, how to sort `Tape`
+
+## Build
+```shell
+$ git clone git@github.com:CheckSelfy/tape-and-sort.git
+$ cd tape-and-sort
+$ cmake -S . -B build
+$ cd build
+$ make 
+# compiled binary is tape_and_sort
+```
+
+## Test
+```shell
+# build before
+$ make test
+```
+
+
+## Tape
+
 The Tape storage device is designed to write and read data sequentially. 
 Actually, it is array of `int32_t` and head, pointed to one of number. 
 Tape is not random-access - moving head is time-wasting operation.
