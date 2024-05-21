@@ -6,32 +6,39 @@
 
 namespace {
     void copy_and_sort_chunks(tape_base &from, tape_base & to, std::size_t M);
-    void copy_piece(tape_base* from, tape_base* to, std::size_t count);
+    std::size_t copy_piece(tape_base* from, tape_base* to, std::size_t count);
     void merge(tape_base *first, tape_base *second, tape_base *to, size_t piece);
 }
 
-void sort_tape(tape_base &from, tape_base &to, const std::size_t M) {
+void sort_tape(tape_base &from, tape_base &to, std::size_t M) {
     const std::size_t N = from.get_size();
 
     // TODO
-    in_memory_tape first_temp = in_memory_tape(N);
-    in_memory_tape second_temp = in_memory_tape(M);
-    in_memory_tape third_temp = in_memory_tape(N);
+    in_memory_tape first_big = in_memory_tape(N);
+    in_memory_tape second_big = in_memory_tape(N);
+    in_memory_tape intermediate = in_memory_tape(N);
 
-    copy_and_sort_chunks(from, first_temp, M);
-    first_temp.move_to_start();
+    tape_base* resulted_tape = &first_big;
+    tape_base* big_tape = &second_big;
+    tape_base* small_tape = &intermediate;
 
-    tape_base* resulted_tape = &first_temp;
-    tape_base* small_tape = &second_temp;
-    tape_base* big_tape = &third_temp;
+    if (M != 0) {
+        copy_and_sort_chunks(from, *resulted_tape, M);
+        M = 1; // we sorted chunks (size is 1)
+    }
+    resulted_tape->move_to_start();
 
     for (std::size_t sorted_piece_size = M; sorted_piece_size < N; sorted_piece_size *= 2) {
         std::swap(resulted_tape, big_tape);
         for (std::size_t cur_chunk = 0; cur_chunk < (N + sorted_piece_size - 1) / sorted_piece_size; cur_chunk += 2) {
-            copy_piece(big_tape, small_tape, sorted_piece_size);
-
             small_tape->move_to_start();
-            merge(big_tape, small_tape, resulted_tape, sorted_piece_size);
+            std::size_t moved_big = copy_piece(big_tape, small_tape, sorted_piece_size);
+            small_tape->move_to_start();
+            if (moved_big == sorted_piece_size) { // if we need merging
+                merge(big_tape, small_tape, resulted_tape, sorted_piece_size);
+            } else { // we copied only small
+                copy_piece(small_tape, resulted_tape, sorted_piece_size);
+            }
         }
         resulted_tape->move_to_start();
         big_tape->move_to_start();
@@ -71,8 +78,9 @@ void copy_and_sort_chunks(tape_base &from, tape_base & to, const std::size_t M) 
     }
 }
 
-void copy_piece(tape_base* from, tape_base* to, std::size_t count) {
-    for (int i = 0; i < count; i++) {
+std::size_t copy_piece(tape_base* from, tape_base* to, std::size_t count) {
+    std::size_t moved_from = 0;
+    for (; moved_from < count; moved_from++) {
         to->put(from->get());
         if (!from->can_move_right()) {
             break;
@@ -83,6 +91,7 @@ void copy_piece(tape_base* from, tape_base* to, std::size_t count) {
         }
         to->move_right();
     }
+    return moved_from;
 }
 
 void merge(tape_base *first, tape_base *second, tape_base *to, size_t piece) {
