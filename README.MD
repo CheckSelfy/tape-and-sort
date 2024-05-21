@@ -9,6 +9,7 @@ Tape provides next methods to manipulate:
 * `move_left` moves head left
 * `can_move_right` checks that head is not on rightest cell
 * `move_right` moves head right 
+* `move_to_start` moves to leftest cell
 * `put` write number in cell
 * `get` get number from cell
 
