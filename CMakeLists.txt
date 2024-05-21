@@ -11,6 +11,7 @@ file(GLOB_RECURSE sources
 
 add_executable(tape_and_sort
         ${sources}
+        src/tape/file_tape.h
 )
 
 include(FetchContent)
