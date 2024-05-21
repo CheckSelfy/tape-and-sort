@@ -53,7 +53,7 @@ public:
     }
 
     bool can_move_right() override {
-        return file.tellp() < length_of_unit * size;
+        return file.tellp() < length_of_unit * (size - 1);
     }
 
     void move_right() override {
