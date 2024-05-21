@@ -48,4 +48,8 @@ public:
         idx = 0;
     }
 
+    std::size_t get_size() override {
+        return numbers.size();
+    }
+
 };

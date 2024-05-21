@@ -63,4 +63,8 @@ public:
         wait(d.move_to_start_time);
         tape.move_to_start();
     }
+
+    std::size_t get_size() override {
+        return tape.size();
+    }
 };
