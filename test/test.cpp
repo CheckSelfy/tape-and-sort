@@ -1,5 +1,6 @@
 #include <gtest/gtest.h>
 #include <numeric>
+#include <random>
 
 #include "../src/sort/sort_tape.h"
 #include "../src/tape/in_memory_tape.h"
@@ -195,7 +196,7 @@ TEST(file_tape, write) {
         fstream = std::fstream("temp.txt", std::ios::binary | std::ios::in);
         int32_t readed = -1;
         for (int i = 0; i < 10; i++) {
-            fstream.read(reinterpret_cast<char*>(&readed), sizeof (readed));
+            fstream.read(reinterpret_cast<char *>(&readed), sizeof(readed));
             ASSERT_EQ(i, readed);
         }
         fstream.close();
@@ -207,7 +208,7 @@ TEST(file_tape, read) {
     {
         fstream = std::fstream("temp.txt", std::ios::binary | std::ios::out | std::ios::trunc);
         for (int i = 0; i < 10; i++) {
-            fstream.write(reinterpret_cast<const char*>(&i), sizeof (int));
+            fstream.write(reinterpret_cast<const char *>(&i), sizeof(int));
         }
         fstream.close();
     }
@@ -229,12 +230,34 @@ TEST(file_tape, read) {
     }
 }
 
+
+TEST(file_tape, can_move_right) {
+    std::fstream fstream;
+    {
+        fstream = std::fstream("temp.txt", std::ios::binary | std::ios::out | std::ios::trunc);
+        for (int i = 0; i < 10; i++) {
+            fstream.write(reinterpret_cast<const char *>(&i), sizeof(int));
+        }
+        fstream.close();
+    }
+    {
+        fstream = std::fstream("temp.txt", std::ios::binary | std::ios::in);
+        file_tape tape = file_tape(std::move(fstream), 10);
+        for (int i = 0; i < 9; i++) {
+            ASSERT_TRUE(tape.can_move_right());
+            tape.move_right();
+        }
+        ASSERT_FALSE(tape.can_move_right());
+        tape.close();
+    }
+}
+
 TEST(file_tape, movement) {
     std::fstream fstream;
     {
         fstream = std::fstream("temp.txt", std::ios::binary | std::ios::out | std::ios::trunc);
         for (int i = 0; i < 10; i++) {
-            fstream.write(reinterpret_cast<const char*>(&i), sizeof (int));
+            fstream.write(reinterpret_cast<const char *>(&i), sizeof(int));
         }
         fstream.close();
     }
@@ -253,7 +276,30 @@ TEST(file_tape, movement) {
 }
 
 static auto fabric_in_memory_tape(const int n) {
-    return [n]() {return std::make_unique<in_memory_tape>(n);};
+    return [n]() { return std::make_unique<in_memory_tape>(n); };
+}
+
+TEST(sort, simple) {
+    std::vector<int> data = {98, 43, 75, 11, 54, -2, -3};
+    in_memory_tape tape = in_memory_tape(data);
+    in_memory_tape out = in_memory_tape(data.size());
+
+    sort_tape(tape, out, 1, fabric_in_memory_tape(data.size()));
+
+    std::vector<int> sorted_data = data;
+    std::sort(sorted_data.begin(), sorted_data.end());
+
+    out.move_to_start();
+    ASSERT_TRUE(out.can_move_right());
+
+    for (int i = 0; i < sorted_data.size() - 1; i++) {
+        ASSERT_EQ(sorted_data[i], out.get());
+        ASSERT_TRUE(out.can_move_right());
+        out.move_right();
+    }
+
+    ASSERT_EQ(sorted_data.back(), out.get());
+    ASSERT_FALSE(out.can_move_right());
 }
 
 TEST(sort, low_memory_use) {
@@ -373,4 +419,35 @@ TEST(sort, no_memory_use) {
 
     ASSERT_EQ(sorted_data.back(), out.get());
     ASSERT_FALSE(out.can_move_right());
+}
+
+TEST(random_sort, random) {
+    static std::random_device rd{};
+    static std::mt19937 mt(rd());
+    for (int size = 10; size < 1000; size++) {
+        std::vector<int> data = std::vector<int>(size);
+        for (int i = 0; i < size; i++) {
+            data[i] = mt();
+        }
+
+        in_memory_tape tape = in_memory_tape(data);
+        in_memory_tape out = in_memory_tape(data.size());
+
+        sort_tape(tape, out, data.size(), fabric_in_memory_tape(size));
+
+        std::vector<int> sorted_data = data;
+        std::sort(sorted_data.begin(), sorted_data.end());
+
+        out.move_to_start();
+        ASSERT_TRUE(out.can_move_right());
+
+        for (int i = 0; i < sorted_data.size() - 1; i++) {
+            ASSERT_EQ(sorted_data[i], out.get());
+            ASSERT_TRUE(out.can_move_right());
+            out.move_right();
+        }
+
+        ASSERT_EQ(sorted_data.back(), out.get());
+        ASSERT_FALSE(out.can_move_right());
+    }
 }
