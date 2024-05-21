@@ -1,7 +1,7 @@
 #include <gtest/gtest.h>
 #include <numeric>
-#include <utility>
 
+#include "../src/sort/sort_tape.h"
 #include "../src/tape/in_memory_tape.h"
 #include "../src/tape/delay_tape.h"
 
@@ -100,6 +100,11 @@ TEST(in_memory_tape, move_to_start) {
     }
 }
 
+TEST(tape, empty) {
+    std::vector<int> data = std::vector<int>();
+    ASSERT_THROW(in_memory_tape tape = in_memory_tape(data), std::invalid_argument);
+}
+
 // warning: increasing these numbers brings to longer test execution
 static constexpr delays sample_delays = {100, 200, 300, 400};
 
@@ -133,7 +138,6 @@ TEST(delay_tape, get) {
     ASSERT_LE(actual, expected_max);
 }
 
-
 TEST(delay_tape, put) {
     std::unique_ptr<tape_base> tape = std::make_unique<delay_tape<in_memory_tape>>(sample_delays, 1);
     auto start = std::chrono::high_resolution_clock::now();
@@ -162,4 +166,123 @@ TEST(delay_tape, move_to_start) {
     constexpr auto expected_max = std::chrono::milliseconds(6 * sample_delays.move_to_start_time);
     ASSERT_LE(expected_min, actual);
     ASSERT_LE(actual, expected_max);
+}
+
+TEST(sort, low_memory_use) {
+    std::vector<int> data = {1, 7, 2, 8, 3, 9};
+    in_memory_tape tape = in_memory_tape(data);
+    in_memory_tape out = in_memory_tape(data.size());
+
+    sort_tape(tape, out, 1);
+
+    std::vector<int> sorted_data = data;
+    std::sort(sorted_data.begin(), sorted_data.end());
+
+    out.move_to_start();
+    ASSERT_TRUE(out.can_move_right());
+
+    for (int i = 0; i < sorted_data.size() - 1; i++) {
+        ASSERT_EQ(sorted_data[i], out.get());
+        ASSERT_TRUE(out.can_move_right());
+        out.move_right();
+    }
+
+    ASSERT_EQ(sorted_data.back(), out.get());
+    ASSERT_FALSE(out.can_move_right());
+}
+
+TEST(sort, all_memory_use) {
+    std::vector<int> data = {1, 7, 2, 8, 3, 9};
+    in_memory_tape tape = in_memory_tape(data);
+    in_memory_tape out = in_memory_tape(data.size());
+
+    sort_tape(tape, out, data.size());
+
+    std::vector<int> sorted_data = data;
+    std::sort(sorted_data.begin(), sorted_data.end());
+
+    out.move_to_start();
+    ASSERT_TRUE(out.can_move_right());
+
+    for (int i = 0; i < sorted_data.size() - 1; i++) {
+        ASSERT_EQ(sorted_data[i], out.get());
+        ASSERT_TRUE(out.can_move_right());
+        out.move_right();
+    }
+
+    ASSERT_EQ(sorted_data.back(), out.get());
+    ASSERT_FALSE(out.can_move_right());
+}
+
+TEST(sort, numbers_repeats) {
+    std::vector<int> data = {1, 1, 1, 1, 1, 0, 0, 0, 0, 4, 4, 4, 4};
+    in_memory_tape tape = in_memory_tape(data);
+    in_memory_tape out = in_memory_tape(data.size());
+
+    sort_tape(tape, out, data.size());
+
+    std::vector<int> sorted_data = data;
+    std::sort(sorted_data.begin(), sorted_data.end());
+
+    out.move_to_start();
+    ASSERT_TRUE(out.can_move_right());
+
+    for (int i = 0; i < sorted_data.size() - 1; i++) {
+        ASSERT_EQ(sorted_data[i], out.get());
+        ASSERT_TRUE(out.can_move_right());
+        out.move_right();
+    }
+
+    ASSERT_EQ(sorted_data.back(), out.get());
+    ASSERT_FALSE(out.can_move_right());
+}
+
+TEST(sort, using_intmax_intmin) {
+    std::vector<int> data = std::vector<int>(10);
+    for (int i = 0; i < 5; i++) {
+        data[2 * i] = std::numeric_limits<int>::max();
+        data[2 * i + 1] = std::numeric_limits<int>::min();
+    }
+    in_memory_tape tape = in_memory_tape(data);
+    in_memory_tape out = in_memory_tape(data.size());
+
+    sort_tape(tape, out, 4);
+
+    std::vector<int> sorted_data = data;
+    std::sort(sorted_data.begin(), sorted_data.end());
+
+    out.move_to_start();
+    ASSERT_TRUE(out.can_move_right());
+
+    for (int i = 0; i < sorted_data.size() - 1; i++) {
+        ASSERT_EQ(sorted_data[i], out.get());
+        ASSERT_TRUE(out.can_move_right());
+        out.move_right();
+    }
+
+    ASSERT_EQ(sorted_data.back(), out.get());
+    ASSERT_FALSE(out.can_move_right());
+}
+
+TEST(sort, no_memory_use) {
+    std::vector<int> data = {1, 7, 2, 8, 3, 9};
+    in_memory_tape tape = in_memory_tape(data);
+    in_memory_tape out = in_memory_tape(data.size());
+
+    sort_tape(tape, out, data.size());
+
+    std::vector<int> sorted_data = data;
+    std::sort(sorted_data.begin(), sorted_data.end());
+
+    out.move_to_start();
+    ASSERT_TRUE(out.can_move_right());
+
+    for (int i = 0; i < sorted_data.size() - 1; i++) {
+        ASSERT_EQ(sorted_data[i], out.get());
+        ASSERT_TRUE(out.can_move_right());
+        out.move_right();
+    }
+
+    ASSERT_EQ(sorted_data.back(), out.get());
+    ASSERT_FALSE(out.can_move_right());
 }
