@@ -4,12 +4,10 @@ project(tape_and_sort)
 set(CMAKE_CXX_STANDARD 20) # using concepts
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-add_executable(tape_and_sort src/main.cpp
-        src/tape/tape_base.h
-        src/tape/delay_tape.h
-        src/tape/in_memory_tape.h
-        src/sort/sort_tape.h
-        src/sort/sort_tape.cpp
+file(GLOB_RECURSE sources "*.cpp")
+
+add_executable(tape_and_sort
+        ${sources}
 )
 
 
@@ -29,6 +27,7 @@ file(GLOB tests "test/*.cpp")
 add_executable(
         tape_sort
         ${tests}
+        src/sort/sort_tape.cpp
 )
 target_link_libraries(
         tape_sort
