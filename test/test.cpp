@@ -4,6 +4,7 @@
 #include "../src/sort/sort_tape.h"
 #include "../src/tape/in_memory_tape.h"
 #include "../src/tape/delay_tape.h"
+#include "../src/tape/file_tape.h"
 
 TEST(in_memory_tape, read) {
     std::vector<int> data = {1, 5, 2, 6, 3, 7, 4, 8, 5, 9};
@@ -19,7 +20,7 @@ TEST(in_memory_tape, read) {
     ASSERT_FALSE(tape->can_move_right());
 }
 
-TEST(in_memory_tape, read_empty) {
+TEST(in_memory_tape, read_standard_init) {
     std::unique_ptr<tape_base> tape = std::make_unique<in_memory_tape>(10);
 
     for (int i = 0; i < 9; i++) {
@@ -29,6 +30,11 @@ TEST(in_memory_tape, read_empty) {
     }
     ASSERT_EQ(0, tape->get());
     ASSERT_FALSE(tape->can_move_right());
+}
+
+TEST(in_memory_tape, empty_ctor) {
+    ASSERT_THROW(std::unique_ptr<tape_base> tape = std::make_unique<in_memory_tape>(0),
+                 std::invalid_argument);
 }
 
 TEST(in_memory_tape, write) {
@@ -166,6 +172,84 @@ TEST(delay_tape, move_to_start) {
     constexpr auto expected_max = std::chrono::milliseconds(6 * sample_delays.move_to_start_time);
     ASSERT_LE(expected_min, actual);
     ASSERT_LE(actual, expected_max);
+}
+
+TEST(file_tape, write) {
+    std::fstream fstream;
+    {
+        fstream = std::fstream("temp.txt", std::ios::binary | std::ios::trunc | std::ios::out);
+        file_tape tape = file_tape(std::move(fstream), 10);
+
+        for (int i = 0; i < 10; i++) {
+            tape.put(i);
+            if (i != 9) {
+                ASSERT_TRUE(tape.can_move_right());
+                tape.move_right();
+            }
+        }
+
+        tape.close();
+    }
+
+    {
+        fstream = std::fstream("temp.txt", std::ios::binary | std::ios::in);
+        int32_t readed = -1;
+        for (int i = 0; i < 10; i++) {
+            fstream.read(reinterpret_cast<char*>(&readed), sizeof (readed));
+            ASSERT_EQ(i, readed);
+        }
+        fstream.close();
+    }
+}
+
+TEST(file_tape, read) {
+    std::fstream fstream;
+    {
+        fstream = std::fstream("temp.txt", std::ios::binary | std::ios::out | std::ios::trunc);
+        for (int i = 0; i < 10; i++) {
+            fstream.write(reinterpret_cast<const char*>(&i), sizeof (int));
+        }
+        fstream.close();
+    }
+
+    {
+        fstream = std::fstream("temp.txt", std::ios::binary | std::ios::in);
+        file_tape tape = file_tape(std::move(fstream), 10);
+
+        for (int i = 0; i < 10; i++) {
+            auto readed = tape.get();
+            ASSERT_EQ(i, readed);
+            if (i != 9) {
+                ASSERT_TRUE(tape.can_move_right());
+                tape.move_right();
+            }
+        }
+
+        tape.close();
+    }
+}
+
+TEST(file_tape, movement) {
+    std::fstream fstream;
+    {
+        fstream = std::fstream("temp.txt", std::ios::binary | std::ios::out | std::ios::trunc);
+        for (int i = 0; i < 10; i++) {
+            fstream.write(reinterpret_cast<const char*>(&i), sizeof (int));
+        }
+        fstream.close();
+    }
+    {
+        fstream = std::fstream("temp.txt", std::ios::binary | std::ios::in);
+        file_tape tape = file_tape(std::move(fstream), 10);
+        for (int i = 0; i < 10; i++) {
+            for (int j = 0; j < i; j++) {
+                tape.move_right();
+            }
+            tape.move_to_start();
+            ASSERT_FALSE(tape.can_move_left());
+        }
+        tape.close();
+    }
 }
 
 TEST(sort, low_memory_use) {
