@@ -8,60 +8,29 @@ private:
     std::vector<tape_base::int_t> numbers;
     std::size_t idx;
 
-    void check_for_size() {
-        if (numbers.empty()) {
-            throw std::invalid_argument("Data can't be empty");
-        }
-    }
+    void check_for_size();
 public:
-    explicit in_memory_tape(std::size_t n) : numbers(n), idx(0) {
-        check_for_size();
-    }
-    explicit in_memory_tape(std::vector<tape_base::int_t> const& data) : numbers(data), idx(0) {
-        check_for_size();
-    }
+    explicit in_memory_tape(std::size_t n);
+    explicit in_memory_tape(std::vector<tape_base::int_t> const& data);
 
     ~in_memory_tape() override = default;
 
-    in_memory_tape& put(tape_base::int_t x) override {
-        numbers[idx] = x;
-        return *this;
-    }
+    in_memory_tape& put(tape_base::int_t x) override;
 
-    tape_base::int_t get() override {
-        return numbers[idx];
-    }
+    tape_base::int_t get() override;
 
-    bool can_move_left() override {
-        return idx != 0;
-    }
+    bool can_move_left() override;
 
-    void move_left() override {
-        if (idx == 0) {
-            throw std::out_of_range("Trying to go left while head is on start");
-        }
-        idx--;
-    }
+    void move_left() override;
 
-    bool can_move_right() override {
-        return idx < numbers.size() - 1;
-    }
+    bool can_move_right() override;
 
-    void move_right() override {
-        if (idx == numbers.size() - 1) {
-            throw std::out_of_range("Trying to go right while head is on end");
-        }
-        idx++;
-    }
+    void move_right() override;
 
-    void move_to_start() override {
-        idx = 0;
-    }
+    void move_to_start() override;
 
-    std::size_t get_size() override {
-        return numbers.size();
-    }
+    std::size_t get_size() override;
 
-    void close() override { }
+    void close() override;
 
 };

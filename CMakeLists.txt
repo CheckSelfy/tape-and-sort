@@ -5,13 +5,14 @@ set(CMAKE_CXX_STANDARD 20) # using concepts
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 file(GLOB_RECURSE sources
-        src/main.cpp
-        src/sort/sort_tape.cpp
+        src/*.cpp
 )
+
+list(FILTER sources EXCLUDE REGEX "main.cpp")
 
 add_executable(tape_and_sort
         ${sources}
-        src/tape/file_tape.h
+        src/main.cpp
 )
 
 include(FetchContent)
@@ -25,12 +26,12 @@ FetchContent_MakeAvailable(googletest)
 
 enable_testing()
 
-file(GLOB tests test/test.cpp ${sources})
+file(GLOB tests test/*.cpp)
 
 add_executable(
         tape_test
-        test/test.cpp
-        src/sort/sort_tape.cpp
+        ${tests}
+        ${sources}
 )
 
 target_link_libraries(
