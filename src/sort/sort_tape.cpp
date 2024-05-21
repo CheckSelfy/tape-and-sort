@@ -90,11 +90,12 @@ namespace {
 
     std::size_t copy_piece(tape_base *from, tape_base *to, std::size_t count) {
         std::size_t moved_from = 0;
-        for (; moved_from < count; moved_from++) {
+        for (std::size_t i = 0; i < count; i++) {
             to->put(from->get());
             if (!from->can_move_right()) {
                 break;
             }
+            moved_from++;
             from->move_right();
             if (!to->can_move_right()) {
                 break;
