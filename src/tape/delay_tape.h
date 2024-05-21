@@ -64,7 +64,7 @@ public:
         tape.move_to_start();
     }
 
-    void close() {
+    void close() override {
         tape.close();
     }
 
