@@ -8,7 +8,9 @@ add_executable(tape_and_sort src/main.cpp
         src/tape/tape_base.h
         src/tape/delay_tape.h
         src/tape/in_memory_tape.h
-        )
+        src/sort/sort_tape.h
+        src/sort/sort_tape.cpp
+)
 
 
 include(FetchContent)
