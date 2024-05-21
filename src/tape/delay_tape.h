@@ -65,6 +65,6 @@ public:
     }
 
     std::size_t get_size() override {
-        return tape.size();
+        return tape.get_size();
     }
 };
