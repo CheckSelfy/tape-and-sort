@@ -7,10 +7,10 @@ struct delays {
 public:
     using time_t = uint32_t; // milliseconds
 
-    const time_t put_time;
-    const time_t read_time;
-    const time_t move_time;
-    const time_t move_to_start_time;
+    time_t put_time;
+    time_t read_time;
+    time_t move_time;
+    time_t move_to_start_time;
 };
 
 // decorator class that gives delays to all operations
@@ -62,6 +62,10 @@ public:
     void move_to_start() override {
         wait(d.move_to_start_time);
         tape.move_to_start();
+    }
+
+    void close() {
+        tape.close();
     }
 
     std::size_t get_size() override {

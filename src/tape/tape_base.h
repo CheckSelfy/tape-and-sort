@@ -26,4 +26,5 @@ public:
     virtual void move_to_start() = 0;
 
     virtual std::size_t get_size() = 0;
+    virtual void close() = 0;
 };

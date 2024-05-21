@@ -53,7 +53,6 @@ public:
     }
 
     bool can_move_right() override {
-        auto res = file.tellp();
         return file.tellp() < length_of_unit * size;
     }
 

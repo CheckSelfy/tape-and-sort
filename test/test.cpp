@@ -252,12 +252,16 @@ TEST(file_tape, movement) {
     }
 }
 
+static auto fabric_in_memory_tape(const int n) {
+    return [n]() {return std::make_unique<in_memory_tape>(n);};
+}
+
 TEST(sort, low_memory_use) {
     std::vector<int> data = {1, 7, 2, 8, 3, 9};
     in_memory_tape tape = in_memory_tape(data);
     in_memory_tape out = in_memory_tape(data.size());
 
-    sort_tape(tape, out, 1);
+    sort_tape(tape, out, 1, fabric_in_memory_tape(6));
 
     std::vector<int> sorted_data = data;
     std::sort(sorted_data.begin(), sorted_data.end());
@@ -280,7 +284,7 @@ TEST(sort, all_memory_use) {
     in_memory_tape tape = in_memory_tape(data);
     in_memory_tape out = in_memory_tape(data.size());
 
-    sort_tape(tape, out, data.size());
+    sort_tape(tape, out, data.size(), fabric_in_memory_tape(6));
 
     std::vector<int> sorted_data = data;
     std::sort(sorted_data.begin(), sorted_data.end());
@@ -303,7 +307,7 @@ TEST(sort, numbers_repeats) {
     in_memory_tape tape = in_memory_tape(data);
     in_memory_tape out = in_memory_tape(data.size());
 
-    sort_tape(tape, out, data.size());
+    sort_tape(tape, out, data.size() / 3, fabric_in_memory_tape(data.size()));
 
     std::vector<int> sorted_data = data;
     std::sort(sorted_data.begin(), sorted_data.end());
@@ -330,7 +334,7 @@ TEST(sort, using_intmax_intmin) {
     in_memory_tape tape = in_memory_tape(data);
     in_memory_tape out = in_memory_tape(data.size());
 
-    sort_tape(tape, out, 4);
+    sort_tape(tape, out, 4, fabric_in_memory_tape(10));
 
     std::vector<int> sorted_data = data;
     std::sort(sorted_data.begin(), sorted_data.end());
@@ -353,7 +357,7 @@ TEST(sort, no_memory_use) {
     in_memory_tape tape = in_memory_tape(data);
     in_memory_tape out = in_memory_tape(data.size());
 
-    sort_tape(tape, out, data.size());
+    sort_tape(tape, out, data.size(), fabric_in_memory_tape(6));
 
     std::vector<int> sorted_data = data;
     std::sort(sorted_data.begin(), sorted_data.end());

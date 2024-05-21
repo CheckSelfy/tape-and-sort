@@ -62,4 +62,6 @@ public:
         return numbers.size();
     }
 
+    void close() override { }
+
 };
