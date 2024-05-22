@@ -21,7 +21,7 @@ $ ./tape_and_sort <input-text> <output-text> <N> <M>
 ```
 
 ### Configurate 
-Configuration file must be in same folder as executable and have next format:
+Configuration file `config.txt` must be in same folder as executable and have next format:
 ```
 write_time=100
 read_time=2000
